@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id                   Int          @id @default(autoincrement())
+  participant_id       String       @unique
+  group_id             String
+  created_at           DateTime     @default(now())
+  first_name           String?
+  age                  Int?
+  gender               String?
+  study_profile        String?
+  background           String?
+  academic_level       String?
+  exp_3d_printing      String?
+  conf_troubleshooting Int?
+  fam_manufacturing    Int?
+  tasks                Task[]
+  post_session         PostSession?
+}
+
+model Task {
+  id                     Int       @id @default(autoincrement())
+  session_id             Int
+  session                Session   @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  task_order             Int
+  scenario_id            String
+  tool_assigned          String
+  start_time             DateTime?
+  end_time               DateTime?
+  time_spent_seconds     Int?
+  diagnosis_text         String?
+  corrective_action_text String?
+  confidence_score       Int?
+  trust_t1               Int?
+  trust_t2               Int?
+  trust_t3               Int?
+  timed_out              Boolean   @default(false)
+
+  @@unique([session_id, task_order])
+}
+
+model PostSession {
+  id                 Int      @id @default(autoincrement())
+  session_id         Int      @unique
+  session            Session  @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  rank_1             String
+  rank_2             String
+  rank_3             String
+  rank_justification String?
+  open_comment       String?
+}

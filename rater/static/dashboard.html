@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>P1P Study — Analysis Dashboard</title>
+
+  <!-- Plotly.js -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset & Variables ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #09090f;
+      --surface:   #111118;
+      --surface2:  #1a1a26;
+      --border:    #2a2a3a;
+      --text:      #e8e8f0;
+      --muted:     #7070a0;
+      --accent:    #818cf8;    /* indigo */
+
+      --kg:   #60a5fa;   /* blue-400  */
+      --llm:  #4ade80;   /* green-400 */
+      --doc:  #fbbf24;   /* amber-400 */
+
+      --red:  #f87171;
+      --font: 'Inter', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* ── Layout ────────────────────────────────────────────────────── */
+    .app { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-title {
+      display: flex;
+      flex-direction: column;
+    }
+    .header-title h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+    .header-title p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    main { flex: 1; overflow-y: auto; padding: 28px; max-width: 1600px; margin: 0 auto; width: 100%; }
+
+    .banner {
+      margin: 18px 28px 0;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(135deg, rgba(248,113,113,0.08), rgba(248,113,113,0.02)),
+        var(--surface);
+      color: var(--text);
+      font-size: 0.8rem;
+    }
+    .banner strong { color: var(--red); }
+    .banner code {
+      font-family: var(--mono);
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    section { margin-bottom: 36px; }
+    section > .section-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Buttons ────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn:hover { background: var(--border); border-color: var(--accent); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #6366f1; }
+    .btn-danger { background: #3a1a1a; border-color: #7f1d1d; color: var(--red); }
+    .btn-danger:hover { background: #4a1a1a; }
+
+    /* ── KPI Cards ──────────────────────────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 14px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .kpi-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+    .kpi-value { font-size: 1.8rem; font-weight: 700; font-family: var(--mono); line-height: 1.1; }
+    .kpi-value.kg  { color: var(--kg); }
+    .kpi-value.llm { color: var(--llm); }
+    .kpi-value.doc { color: var(--doc); }
+    .kpi-value.neutral { color: var(--text); }
+    .kpi-sub { font-size: 0.72rem; color: var(--muted); }
+
+    /* ── Chart Grid ─────────────────────────────────────────────────── */
+    .chart-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .chart-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 1100px) {
+      .chart-grid-3 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 700px) {
+      .chart-grid-3, .chart-grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .chart-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .chart-subtitle {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .chart-container { width: 100%; }
+
+    /* ── Stats Panel ────────────────────────────────────────────────── */
+    .stats-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .stats-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-header:hover { background: var(--surface2); }
+    .stats-header h3 { font-size: 0.85rem; font-weight: 600; }
+    .stats-body { padding: 18px; display: flex; flex-direction: column; gap: 22px; }
+
+    .stats-section h4 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    /* ── Tables ─────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      font-family: var(--mono);
+    }
+    th {
+      text-align: left;
+      padding: 7px 12px;
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+
+    .sig-yes { color: var(--red); font-weight: 600; }
+    .sig-no  { color: var(--muted); }
+
+    /* Raw data table */
+    .raw-table { font-size: 0.75rem; }
+    .raw-table th { font-size: 0.65rem; }
+    .truncate-cell {
+      max-width: 140px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: help;
+    }
+    .accuracy-input {
+      width: 68px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      padding: 3px 6px;
+      text-align: right;
+    }
+    .accuracy-input:focus { outline: none; border-color: var(--accent); }
+
+    .tool-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+    .tool-KG  { background: rgba(96,165,250,0.15); color: var(--kg);  border: 1px solid rgba(96,165,250,0.3); }
+    .tool-LLM { background: rgba(74,222,128,0.15); color: var(--llm); border: 1px solid rgba(74,222,128,0.3); }
+    .tool-DOC { background: rgba(251,191,36,0.15); color: var(--doc); border: 1px solid rgba(251,191,36,0.3); }
+
+    .timed-out { color: var(--red); font-size: 0.7rem; }
+
+    /* ── Toast ──────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 0.82rem;
+      z-index: 9999;
+      transition: opacity 0.3s;
+      max-width: 340px;
+    }
+    .toast.success { border-color: #16a34a; color: var(--llm); }
+    .toast.error   { border-color: #991b1b; color: var(--red); }
+    .toast.hidden  { opacity: 0; pointer-events: none; }
+
+    /* ── Spinner ────────────────────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Misc helpers ───────────────────────────────────────────────── */
+    .null { color: var(--muted); font-style: italic; }
+    .mono { font-family: var(--mono); }
+    .text-right { text-align: right; }
+    .mt-4 { margin-top: 4px; }
+
+    .chevron { transition: transform 0.2s; display: inline-block; }
+    .chevron.open { transform: rotate(180deg); }
+
+    /* ── Narrative panel ────────────────────────────────────────────── */
+    .narrative-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .narrative-error { color: var(--red); font-size: 0.82rem; margin-top: 6px; }
+    .narrative-textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.85rem;
+      line-height: 1.75;
+      padding: 16px 18px;
+      resize: none;
+      overflow: hidden;
+      field-sizing: content;   /* auto-grow in modern browsers */
+      min-height: 120px;
+      outline: none;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app" x-data="dashboard()" x-init="init()">
+
+  <!-- ── HEADER ──────────────────────────────────────────────────── -->
+  <header>
+    <div class="header-title">
+      <h1>P1P Troubleshooting Study — Analysis Dashboard</h1>
+      <p x-text="statusLine">Loading…</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" @click="runScore(false)" :disabled="scoring">
+        <span x-show="scoring" class="spinner"></span>
+        <span x-show="!scoring">▶</span>
+        Score unscored tasks
+      </button>
+      <button class="btn btn-danger" @click="runScore(true)" :disabled="scoring">
+        <span x-show="scoring" class="spinner"></span>
+        ↺ Force rescore all
+      </button>
+      <button class="btn" @click="refresh()">⟳ Refresh</button>
+    </div>
+  </header>
+
+  <template x-if="health.status !== 'ok'">
+    <div class="banner">
+      <strong>Startup configuration incomplete.</strong>
+      <span x-show="health.db !== 'ok'"> Database missing: run the main app at least once so <code>prisma/study.db</code> exists.</span>
+      <span x-show="health.openai_api_key !== 'set'"> OpenAI key missing: set <code>OPENAI_API_KEY</code> in the root <code>.env.local</code>.</span>
+    </div>
+  </template>
+
+  <!-- ── MAIN ────────────────────────────────────────────────────── -->
+  <main>
+
+    <!-- KPI Cards -->
+    <section>
+      <div class="section-title">Key Performance Indicators</div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Sessions</div>
+          <div class="kpi-value neutral mono" x-text="kpi.sessions ?? '—'"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Scored Tasks</div>
+          <div class="kpi-value neutral mono" x-text="kpi.scored_tasks ?? '—'"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Accuracy — KG</div>
+          <div class="kpi-value kg mono" x-text="kpi.acc_kg != null ? kpi.acc_kg.toFixed(3) : '—'"></div>
+          <div class="kpi-sub">mean accuracy</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Accuracy — LLM</div>
+          <div class="kpi-value llm mono" x-text="kpi.acc_llm != null ? kpi.acc_llm.toFixed(3) : '—'"></div>
+          <div class="kpi-sub">mean accuracy</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Accuracy — DOC</div>
+          <div class="kpi-value doc mono" x-text="kpi.acc_doc != null ? kpi.acc_doc.toFixed(3) : '—'"></div>
+          <div class="kpi-sub">mean accuracy</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Timeout Rate</div>
+          <div class="kpi-value neutral mono" x-text="kpi.timeout_pct != null ? kpi.timeout_pct.toFixed(1) + '%' : '—'"></div>
+          <div class="kpi-sub">of all tasks</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts row 1: accuracy, time, trust -->
+    <section>
+      <div class="section-title">Response Quality & Behaviour</div>
+      <div class="chart-grid-3">
+        <div class="chart-card">
+          <div class="chart-title">Diagnostic Accuracy per Tool</div>
+          <div class="chart-subtitle">Box plot with individual data points · 0 = no match · 1 = perfect</div>
+          <div class="chart-container" id="chart-accuracy"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Resolution Time per Tool</div>
+          <div class="chart-subtitle">Seconds · timed-out tasks shown at 300 s (×)</div>
+          <div class="chart-container" id="chart-time"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Perceived Trust per Tool</div>
+          <div class="chart-subtitle">Mean of 3 trust items · Likert 1–7</div>
+          <div class="chart-container" id="chart-trust"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts row 2: calibration, scenario breakdown, correlation -->
+    <section>
+      <div class="section-title">Trust Calibration & Context</div>
+      <div class="chart-grid-3">
+        <div class="chart-card">
+          <div class="chart-title">Trust Calibration Index per Tool</div>
+          <div class="chart-subtitle">(trust/7) − accuracy · positive = over-trust · ref line at 0</div>
+          <div class="chart-container" id="chart-calib"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Accuracy by Scenario × Tool</div>
+          <div class="chart-subtitle">Mean accuracy · grouped by scenario (P1/P2/P3)</div>
+          <div class="chart-container" id="chart-scenario"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Confidence vs. Accuracy</div>
+          <div class="chart-subtitle">Spearman r per tool · each point = one task</div>
+          <div class="chart-container" id="chart-scatter"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts row 3: preference, timeout -->
+    <section>
+      <div class="section-title">Preference & Completion</div>
+      <div class="chart-grid-2">
+        <div class="chart-card">
+          <div class="chart-title">Tool Preference Ranking</div>
+          <div class="chart-subtitle">Post-session ranking · stacked 1st / 2nd / 3rd place counts (normalised %)</div>
+          <div class="chart-container" id="chart-pref"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Timeout Rate per Tool</div>
+          <div class="chart-subtitle">% of tasks where the 5-minute timer expired</div>
+          <div class="chart-container" id="chart-timeout"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Statistical Results Panel -->
+    <section>
+      <div class="section-title">Statistical Results</div>
+      <div class="stats-panel">
+        <div class="stats-header" @click="statsOpen = !statsOpen">
+          <h3>Inferential Statistics (Friedman, Wilcoxon, ANOVA, Spearman)</h3>
+          <span class="chevron" :class="{ open: statsOpen }">▼</span>
+        </div>
+        <div class="stats-body" x-show="statsOpen" x-transition>
+
+          <!-- RQ1: Accuracy -->
+          <div class="stats-section">
+            <h4>RQ1 — Diagnostic Accuracy</h4>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Test</th><th>χ² / F</th><th>df</th><th>p</th><th>Effect Size</th></tr></thead>
+                <tbody>
+                  <template x-if="statsData.accuracy && statsData.accuracy.friedman">
+                    <tr>
+                      <td>Friedman</td>
+                      <td class="mono" x-text="statsData.accuracy.friedman.chi2 ?? '—'"></td>
+                      <td class="mono" x-text="statsData.accuracy.friedman.df ?? '—'"></td>
+                      <td class="mono" :class="statsData.accuracy.friedman.p < 0.05 ? 'sig-yes' : 'sig-no'" x-text="statsData.accuracy.friedman.p ?? '—'"></td>
+                      <td class="mono" x-text="statsData.accuracy.friedman.kendall_w != null ? 'W = ' + statsData.accuracy.friedman.kendall_w : '—'"></td>
+                    </tr>
+                  </template>
+                  <template x-if="!statsData.accuracy || !statsData.accuracy.friedman">
+                    <tr><td colspan="5" class="null">Insufficient data for Friedman test</td></tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-wrap mt-4">
+              <table>
+                <thead><tr><th>Post-hoc (Wilcoxon)</th><th>Statistic</th><th>p raw</th><th>p adj (Bonferroni)</th><th>r (rank-biserial)</th><th>Sig.</th></tr></thead>
+                <tbody>
+                  <template x-for="row in (statsData.accuracy && statsData.accuracy.posthoc) || []" :key="row.pair">
+                    <tr>
+                      <td class="mono" x-text="row.pair"></td>
+                      <td class="mono" x-text="row.statistic ?? '—'"></td>
+                      <td class="mono" x-text="row.p_raw ?? '—'"></td>
+                      <td class="mono" :class="row.significant ? 'sig-yes' : 'sig-no'" x-text="row.p_adj ?? '—'"></td>
+                      <td class="mono" x-text="row.effect_size_r ?? '—'"></td>
+                      <td :class="row.significant ? 'sig-yes' : 'sig-no'" x-text="row.significant ? '✓' : '—'"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- RQ2: Time -->
+          <div class="stats-section">
+            <h4>RQ2 — Resolution Time</h4>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Condition</th><th>Shapiro-Wilk W</th><th>p</th><th>Normal?</th></tr></thead>
+                <tbody>
+                  <template x-for="tool in ['KG','LLM','DOC']" :key="tool">
+                    <tr>
+                      <td><span :class="'tool-badge tool-' + tool" x-text="tool"></span></td>
+                      <td class="mono" x-text="statsData.time && statsData.time.shapiro && statsData.time.shapiro[tool] ? statsData.time.shapiro[tool].W : '—'"></td>
+                      <td class="mono" x-text="statsData.time && statsData.time.shapiro && statsData.time.shapiro[tool] ? statsData.time.shapiro[tool].p : '—'"></td>
+                      <td class="mono" x-text="statsData.time && statsData.time.shapiro && statsData.time.shapiro[tool] ? (statsData.time.shapiro[tool].normal ? 'Yes' : 'No') : '—'"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-wrap mt-4">
+              <table>
+                <thead><tr><th>Test</th><th>Stat</th><th>df</th><th>p</th><th>Effect Size</th></tr></thead>
+                <tbody>
+                  <template x-if="statsData.time && statsData.time.rm_anova">
+                    <tr>
+                      <td>rm-ANOVA</td>
+                      <td class="mono" x-text="statsData.time.rm_anova.F ?? '—'"></td>
+                      <td class="mono" x-text="statsData.time.rm_anova.df ?? '—'"></td>
+                      <td class="mono" :class="(statsData.time.rm_anova.p_GG ?? statsData.time.rm_anova.p) < 0.05 ? 'sig-yes' : 'sig-no'" x-text="statsData.time.rm_anova.p_GG ?? statsData.time.rm_anova.p ?? '—'"></td>
+                      <td class="mono" x-text="statsData.time.rm_anova.eta_sq_partial != null ? 'η²p = ' + statsData.time.rm_anova.eta_sq_partial : '—'"></td>
+                    </tr>
+                  </template>
+                  <template x-if="statsData.time && statsData.time.friedman">
+                    <tr>
+                      <td>Friedman</td>
+                      <td class="mono" x-text="statsData.time.friedman.chi2 ?? '—'"></td>
+                      <td class="mono" x-text="statsData.time.friedman.df ?? '—'"></td>
+                      <td class="mono" :class="statsData.time.friedman.p < 0.05 ? 'sig-yes' : 'sig-no'" x-text="statsData.time.friedman.p ?? '—'"></td>
+                      <td class="mono" x-text="statsData.time.friedman.kendall_w != null ? 'W = ' + statsData.time.friedman.kendall_w : '—'"></td>
+                    </tr>
+                  </template>
+                  <template x-if="!statsData.time || (!statsData.time.rm_anova && !statsData.time.friedman)">
+                    <tr><td colspan="5" class="null">Insufficient data</td></tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- RQ3: Trust -->
+          <div class="stats-section">
+            <h4>RQ3 — Perceived Trust</h4>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Test</th><th>χ²</th><th>df</th><th>p</th><th>Kendall's W</th></tr></thead>
+                <tbody>
+                  <template x-if="statsData.trust && statsData.trust.friedman">
+                    <tr>
+                      <td>Friedman</td>
+                      <td class="mono" x-text="statsData.trust.friedman.chi2 ?? '—'"></td>
+                      <td class="mono" x-text="statsData.trust.friedman.df ?? '—'"></td>
+                      <td class="mono" :class="statsData.trust.friedman.p < 0.05 ? 'sig-yes' : 'sig-no'" x-text="statsData.trust.friedman.p ?? '—'"></td>
+                      <td class="mono" x-text="statsData.trust.friedman.kendall_w ?? '—'"></td>
+                    </tr>
+                  </template>
+                  <template x-if="!statsData.trust || !statsData.trust.friedman">
+                    <tr><td colspan="5" class="null">Insufficient data</td></tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-wrap mt-4">
+              <table>
+                <thead><tr><th>Cronbach's α</th><th>KG</th><th>LLM</th><th>DOC</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td>Trust items (T1/T2/T3)</td>
+                    <td class="mono" x-text="statsData.cronbach_alpha && statsData.cronbach_alpha.KG != null ? statsData.cronbach_alpha.KG : '—'"></td>
+                    <td class="mono" x-text="statsData.cronbach_alpha && statsData.cronbach_alpha.LLM != null ? statsData.cronbach_alpha.LLM : '—'"></td>
+                    <td class="mono" x-text="statsData.cronbach_alpha && statsData.cronbach_alpha.DOC != null ? statsData.cronbach_alpha.DOC : '—'"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- RQ4: Calibration -->
+          <div class="stats-section">
+            <h4>RQ4 — Trust Calibration Index</h4>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Condition</th><th>Mean Index</th><th>Wilcoxon W</th><th>p (vs. 0)</th><th>Sig. ≠ 0?</th></tr></thead>
+                <tbody>
+                  <template x-for="tool in ['KG','LLM','DOC']" :key="tool">
+                    <tr>
+                      <td><span :class="'tool-badge tool-' + tool" x-text="tool"></span></td>
+                      <td class="mono" x-text="statsData.calibration && statsData.calibration.descriptive && statsData.calibration.descriptive[tool] && statsData.calibration.descriptive[tool].mean != null ? statsData.calibration.descriptive[tool].mean : '—'"></td>
+                      <td class="mono" x-text="statsData.calibration && statsData.calibration.one_sample_wilcoxon && statsData.calibration.one_sample_wilcoxon[tool] ? statsData.calibration.one_sample_wilcoxon[tool].statistic : '—'"></td>
+                      <td class="mono" :class="statsData.calibration && statsData.calibration.one_sample_wilcoxon && statsData.calibration.one_sample_wilcoxon[tool] && statsData.calibration.one_sample_wilcoxon[tool].significant ? 'sig-yes' : 'sig-no'" x-text="statsData.calibration && statsData.calibration.one_sample_wilcoxon && statsData.calibration.one_sample_wilcoxon[tool] ? statsData.calibration.one_sample_wilcoxon[tool].p : '—'"></td>
+                      <td :class="statsData.calibration && statsData.calibration.one_sample_wilcoxon && statsData.calibration.one_sample_wilcoxon[tool] && statsData.calibration.one_sample_wilcoxon[tool].significant ? 'sig-yes' : 'sig-no'" x-text="statsData.calibration && statsData.calibration.one_sample_wilcoxon && statsData.calibration.one_sample_wilcoxon[tool] ? (statsData.calibration.one_sample_wilcoxon[tool].significant ? '✓' : '—') : '—'"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- RQ5: Preference -->
+          <div class="stats-section">
+            <h4>RQ5 — Tool Preference</h4>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Test</th><th>χ²</th><th>df</th><th>p</th><th>Kendall's W</th></tr></thead>
+                <tbody>
+                  <template x-if="statsData.preference && statsData.preference.friedman">
+                    <tr>
+                      <td>Friedman (Borda pts)</td>
+                      <td class="mono" x-text="statsData.preference.friedman.chi2 ?? '—'"></td>
+                      <td class="mono" x-text="statsData.preference.friedman.df ?? '—'"></td>
+                      <td class="mono" :class="statsData.preference.friedman.p < 0.05 ? 'sig-yes' : 'sig-no'" x-text="statsData.preference.friedman.p ?? '—'"></td>
+                      <td class="mono" x-text="statsData.preference.friedman.kendall_w ?? '—'"></td>
+                    </tr>
+                  </template>
+                  <template x-if="!statsData.preference || !statsData.preference.friedman">
+                    <tr><td colspan="5" class="null">Insufficient data</td></tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-wrap mt-4">
+              <table>
+                <thead><tr><th>Tool</th><th>1st Choice Count</th><th>Borda Mean</th></tr></thead>
+                <tbody>
+                  <template x-for="tool in ['KG','LLM','DOC']" :key="tool">
+                    <tr>
+                      <td><span :class="'tool-badge tool-' + tool" x-text="tool"></span></td>
+                      <td class="mono" x-text="statsData.preference && statsData.preference.first_choice_counts ? (statsData.preference.first_choice_counts[tool] ?? 0) : '—'"></td>
+                      <td class="mono" x-text="statsData.preference && statsData.preference.borda_means ? (statsData.preference.borda_means[tool] ?? '—') : '—'"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- RQ6: Correlation -->
+          <div class="stats-section">
+            <h4>RQ6 — Confidence × Accuracy (Spearman)</h4>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Condition</th><th>r</th><th>p</th><th>n</th><th>Sig.?</th></tr></thead>
+                <tbody>
+                  <template x-for="tool in ['KG','LLM','DOC']" :key="tool">
+                    <tr>
+                      <td><span :class="'tool-badge tool-' + tool" x-text="tool"></span></td>
+                      <td class="mono" x-text="statsData.correlation_confidence_accuracy && statsData.correlation_confidence_accuracy[tool] ? statsData.correlation_confidence_accuracy[tool].r : '—'"></td>
+                      <td class="mono" :class="statsData.correlation_confidence_accuracy && statsData.correlation_confidence_accuracy[tool] && statsData.correlation_confidence_accuracy[tool].p < 0.05 ? 'sig-yes' : 'sig-no'" x-text="statsData.correlation_confidence_accuracy && statsData.correlation_confidence_accuracy[tool] ? statsData.correlation_confidence_accuracy[tool].p : '—'"></td>
+                      <td class="mono" x-text="statsData.correlation_confidence_accuracy && statsData.correlation_confidence_accuracy[tool] ? statsData.correlation_confidence_accuracy[tool].n : '—'"></td>
+                      <td :class="statsData.correlation_confidence_accuracy && statsData.correlation_confidence_accuracy[tool] && statsData.correlation_confidence_accuracy[tool].p < 0.05 ? 'sig-yes' : 'sig-no'" x-text="statsData.correlation_confidence_accuracy && statsData.correlation_confidence_accuracy[tool] ? (statsData.correlation_confidence_accuracy[tool].p < 0.05 ? '✓' : '—') : '—'"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div><!-- /stats-body -->
+      </div><!-- /stats-panel -->
+    </section>
+
+    <!-- Raw Data Table -->
+    <section>
+      <div class="section-title">Raw Data — Editable Accuracy</div>
+      <div class="stats-panel">
+        <div class="stats-body" style="padding: 0;">
+          <div class="table-wrap">
+            <table class="raw-table">
+              <thead>
+                <tr>
+                  <th>Participant</th>
+                  <th>Group</th>
+                  <th>Scenario</th>
+                  <th>Tool</th>
+                  <th>Time (s)</th>
+                  <th>T.O.</th>
+                  <th>Diagnosis</th>
+                  <th>Action</th>
+                  <th>Conf.</th>
+                  <th>T1</th><th>T2</th><th>T3</th>
+                  <th>Trust</th>
+                  <th>Accuracy</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-if="rawData.length === 0">
+                  <tr><td colspan="15" style="text-align:center; padding:28px;" class="null">No data yet. Run scoring first.</td></tr>
+                </template>
+                <template x-for="row in rawData" :key="row.task_id">
+                  <tr>
+                    <td class="mono" x-text="row.participant_id ?? '—'"></td>
+                    <td class="mono" x-text="row.group_id ?? '—'"></td>
+                    <td class="mono" x-text="row.scenario_id ?? '—'"></td>
+                    <td><span :class="'tool-badge tool-' + row.tool_assigned" x-text="row.tool_assigned"></span></td>
+                    <td class="mono" x-text="row.time_spent_seconds ?? '—'"></td>
+                    <td>
+                      <span x-show="row.timed_out" class="timed-out">✗</span>
+                      <span x-show="!row.timed_out" class="null">—</span>
+                    </td>
+                    <td class="truncate-cell" :title="row.diagnosis_text" x-text="truncate(row.diagnosis_text)"></td>
+                    <td class="truncate-cell" :title="row.corrective_action_text" x-text="truncate(row.corrective_action_text)"></td>
+                    <td class="mono" x-text="row.confidence_score ?? '—'"></td>
+                    <td class="mono" x-text="row.trust_t1 ?? '—'"></td>
+                    <td class="mono" x-text="row.trust_t2 ?? '—'"></td>
+                    <td class="mono" x-text="row.trust_t3 ?? '—'"></td>
+                    <td class="mono" x-text="trustScore(row)"></td>
+                    <td>
+                      <input
+                        class="accuracy-input"
+                        type="number" min="0" max="1" step="0.01"
+                        :value="row.accuracy != null ? row.accuracy : ''"
+                        :placeholder="row.accuracy == null ? 'null' : ''"
+                        @blur="patchAccuracy(row, $event.target.value)"
+                      />
+                    </td>
+                    <td class="truncate-cell" :title="row.score_notes" x-text="truncate(row.score_notes, 50)"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Academic Results Narrative -->
+    <section>
+      <div class="section-title">Academic Results Narrative</div>
+      <div class="stats-panel">
+        <div class="stats-body">
+          <div class="narrative-actions">
+            <button
+              class="btn btn-primary"
+              @click="generateNarrative()"
+              :disabled="generatingNarrative || !hasStats"
+              :title="hasStats ? '' : 'Load stats data first (refresh the page)'"
+            >
+              <span x-show="generatingNarrative" class="spinner"></span>
+              <span x-show="!generatingNarrative">✦</span>
+              Generate narrative
+            </button>
+            <button
+              class="btn"
+              x-show="narrativeText"
+              @click="copyNarrative()"
+            >
+              ⎘ Copy to clipboard
+            </button>
+          </div>
+          <div class="narrative-error" x-show="narrativeError" x-text="narrativeError"></div>
+          <textarea
+            x-show="narrativeText"
+            class="narrative-textarea"
+            readonly
+            x-text="narrativeText"
+            x-ref="narrativeArea"
+          ></textarea>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- /main -->
+
+  <!-- ── TOAST ──────────────────────────────────────────────────── -->
+  <div class="toast" :class="[toast.type, toast.visible ? '' : 'hidden']" x-text="toast.msg"></div>
+
+</div><!-- /app -->
+
+<!-- =====================================================================
+     Alpine.js Application Logic
+     ===================================================================== -->
+<script>
+// ── Plotly dark theme base ──────────────────────────────────────────────
+const BG   = '#09090f';
+const SRF  = '#111118';
+const SRF2 = '#1a1a26';
+const BORDER = '#2a2a3a';
+const TEXT = '#e8e8f0';
+const MUTED = '#7070a0';
+
+const KG_COLOR  = '#60a5fa';
+const LLM_COLOR = '#4ade80';
+const DOC_COLOR = '#fbbf24';
+const TOOL_COLORS = { KG: KG_COLOR, LLM: LLM_COLOR, DOC: DOC_COLOR };
+
+const PLOTLY_BASE_LAYOUT = {
+  paper_bgcolor: SRF,
+  plot_bgcolor:  SRF,
+  font: { family: "'JetBrains Mono', monospace", color: TEXT, size: 11 },
+  margin: { t: 20, r: 14, b: 48, l: 52 },
+  xaxis: {
+    gridcolor: BORDER, zerolinecolor: BORDER,
+    tickfont: { color: TEXT }, titlefont: { color: MUTED },
+    linecolor: BORDER,
+  },
+  yaxis: {
+    gridcolor: BORDER, zerolinecolor: BORDER,
+    tickfont: { color: TEXT }, titlefont: { color: MUTED },
+    linecolor: BORDER,
+  },
+  legend: {
+    bgcolor: 'rgba(0,0,0,0)',
+    font: { color: TEXT, size: 11 },
+    bordercolor: BORDER,
+  },
+  hoverlabel: {
+    bgcolor: SRF2, bordercolor: BORDER,
+    font: { family: "'JetBrains Mono', monospace", color: TEXT },
+  },
+};
+
+const CHART_CONFIG = { responsive: true, displayModeBar: false };
+
+function makeLayout(overrides = {}) {
+  return Object.assign({}, PLOTLY_BASE_LAYOUT, overrides,
+    overrides.xaxis ? { xaxis: Object.assign({}, PLOTLY_BASE_LAYOUT.xaxis, overrides.xaxis) } : {},
+    overrides.yaxis ? { yaxis: Object.assign({}, PLOTLY_BASE_LAYOUT.yaxis, overrides.yaxis) } : {},
+  );
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────
+
+function boxTrace(values, name, color, overrides = {}) {
+  return Object.assign({
+    y: values,
+    name,
+    type: 'box',
+    boxpoints: 'all',
+    jitter: 0.4,
+    pointpos: 0,
+    marker: { color, size: 5, opacity: 0.8, line: { color: BG, width: 1 } },
+    line: { color, width: 1.5 },
+    fillcolor: color + '22',
+    whiskerwidth: 0.6,
+  }, overrides);
+}
+
+function groupByTool(data, col) {
+  const out = { KG: [], LLM: [], DOC: [] };
+  for (const row of data) {
+    const t = row.tool_assigned;
+    if (out[t] !== undefined && row[col] != null) out[t].push(+row[col]);
+  }
+  return out;
+}
+
+// ── Alpine component ───────────────────────────────────────────────────
+
+function dashboard() {
+  return {
+    rawData: [],
+    statsData: {},
+    kpi: {},
+    health: { status: 'unknown', db: 'unknown', openai_api_key: 'unknown' },
+    generatingNarrative: false,
+    narrativeText: '',
+    narrativeError: '',
+    usingPreviewData: false,
+    statsOpen: true,
+    scoring: false,
+    toast: { msg: '', type: 'success', visible: false },
+    statusLine: 'Loading data…',
+
+    async init() {
+      await this.refresh();
+    },
+
+    async refresh() {
+      try {
+        const [dataRes, statsRes, healthRes] = await Promise.all([
+          fetch('/api/data'),
+          fetch('/api/stats'),
+          fetch('/api/health'),
+        ]);
+        this.rawData  = await dataRes.json();
+        const statsBody = await statsRes.json();
+        this.health = await healthRes.json();
+
+        const chartRows = this.rawData.length ? this.rawData : this.sampleData();
+        this.usingPreviewData = this.rawData.length === 0;
+        this.statsData = this.rawData.length ? statsBody : this.sampleStats();
+        this.computeKPI(chartRows);
+        this.renderCharts(chartRows);
+        this.statusLine = this.usingPreviewData
+          ? `No scored data yet · showing simulated preview · updated ${new Date().toLocaleTimeString()}`
+          : `${this.rawData.length} task rows · updated ${new Date().toLocaleTimeString()}`;
+      } catch (e) {
+        this.showToast('Failed to load data: ' + e.message, 'error');
+      }
+    },
+
+    computeKPI(data = this.rawData) {
+      const sessions = new Set(data.map(r => r.session_id)).size;
+      const scored   = data.filter(r => r.accuracy != null).length;
+      const byTool   = t => data.filter(r => r.tool_assigned === t && r.accuracy != null);
+      const mean     = arr => arr.length ? arr.reduce((a,b) => a+b, 0) / arr.length : null;
+
+      const timeouts = data.filter(r => r.timed_out).length;
+      const timeout_pct = data.length ? (timeouts / data.length) * 100 : null;
+
+      this.kpi = {
+        sessions,
+        scored_tasks: scored,
+        acc_kg:  mean(byTool('KG').map(r => r.accuracy)),
+        acc_llm: mean(byTool('LLM').map(r => r.accuracy)),
+        acc_doc: mean(byTool('DOC').map(r => r.accuracy)),
+        timeout_pct,
+      };
+    },
+
+    renderCharts(data = this.rawData) {
+      if (!data.length) return;
+
+      // ── Chart 1: Accuracy ───────────────────────────────────────────
+      {
+        const g = groupByTool(data, 'accuracy');
+        Plotly.react('chart-accuracy',
+          ['KG','LLM','DOC'].map(t => boxTrace(g[t], t, TOOL_COLORS[t], { x: [t] })),
+          makeLayout({
+            height: 280,
+            xaxis: { title: 'Support Tool', tickvals: ['KG','LLM','DOC'] },
+            yaxis: { title: 'Accuracy Score', range: [-0.05, 1.05], zeroline: false },
+          }),
+          CHART_CONFIG
+        );
+      }
+
+      // ── Chart 2: Time ───────────────────────────────────────────────
+      {
+        const byTool = { KG: [], LLM: [], DOC: [] };
+        const timedOut = { KG: [], LLM: [], DOC: [] };
+        for (const row of data) {
+          const t = row.tool_assigned;
+          if (byTool[t] === undefined) continue;
+          if (row.time_spent_seconds != null) {
+            (row.timed_out ? timedOut : byTool)[t].push(+row.time_spent_seconds);
+          }
+        }
+
+        const traces = [];
+        for (const t of ['KG','LLM','DOC']) {
+          traces.push(boxTrace(byTool[t], t, TOOL_COLORS[t], { x: [t], showlegend: true }));
+          if (timedOut[t].length) {
+            traces.push({
+              x: Array(timedOut[t].length).fill(t),
+              y: timedOut[t],
+              name: `${t} (T.O.)`,
+              mode: 'markers',
+              type: 'scatter',
+              marker: { symbol: 'x', color: TOOL_COLORS[t], size: 9, opacity: 0.7 },
+              showlegend: false,
+            });
+          }
+        }
+
+        Plotly.react('chart-time', traces,
+          makeLayout({
+            height: 280,
+            xaxis: { title: 'Support Tool' },
+            yaxis: { title: 'Time Spent (s)', zeroline: false },
+            shapes: [{ type: 'line', x0: -0.5, x1: 2.5, y0: 300, y1: 300,
+                        line: { color: '#f87171', width: 1, dash: 'dot' } }],
+          }),
+          CHART_CONFIG
+        );
+      }
+
+      // ── Chart 3: Trust ─────────────────────────────────────────────
+      {
+        const byTool = { KG: [], LLM: [], DOC: [] };
+        for (const row of data) {
+          const t = row.tool_assigned;
+          if (byTool[t] === undefined) continue;
+          const vals = [row.trust_t1, row.trust_t2, row.trust_t3].filter(v => v != null);
+          if (vals.length === 3) byTool[t].push(vals.reduce((a,b) => a+b) / 3);
+        }
+        Plotly.react('chart-trust',
+          ['KG','LLM','DOC'].map(t => boxTrace(byTool[t], t, TOOL_COLORS[t], { x: [t] })),
+          makeLayout({
+            height: 280,
+            xaxis: { title: 'Support Tool' },
+            yaxis: { title: 'Trust Score (1–7)', range: [0.5, 7.5], zeroline: false },
+          }),
+          CHART_CONFIG
+        );
+      }
+
+      // ── Chart 4: Calibration ────────────────────────────────────────
+      {
+        const byTool = { KG: [], LLM: [], DOC: [] };
+        for (const row of data) {
+          const t = row.tool_assigned;
+          if (byTool[t] === undefined) continue;
+          const vals = [row.trust_t1, row.trust_t2, row.trust_t3].filter(v => v != null);
+          if (vals.length === 3 && row.accuracy != null) {
+            const trust = vals.reduce((a,b) => a+b) / 3;
+            byTool[t].push((trust / 7) - +row.accuracy);
+          }
+        }
+        Plotly.react('chart-calib',
+          ['KG','LLM','DOC'].map(t => boxTrace(byTool[t], t, TOOL_COLORS[t], { x: [t] })),
+          makeLayout({
+            height: 280,
+            xaxis: { title: 'Support Tool' },
+            yaxis: { title: 'Calibration Index', zeroline: true, zerolinecolor: '#f87171', zerolinewidth: 1.5 },
+            shapes: [{ type: 'line', x0: -0.5, x1: 2.5, y0: 0, y1: 0,
+                        line: { color: '#f87171', width: 1.5, dash: 'dash' } }],
+          }),
+          CHART_CONFIG
+        );
+      }
+
+      // ── Chart 5: Scenario × Tool ────────────────────────────────────
+      {
+        const scenarios = ['P1','P2','P3'];
+        const traces = ['KG','LLM','DOC'].map(t => {
+          const means = scenarios.map(sc => {
+            const vals = data.filter(r => r.tool_assigned === t && r.scenario_id === sc && r.accuracy != null).map(r => +r.accuracy);
+            return vals.length ? vals.reduce((a,b) => a+b) / vals.length : null;
+          });
+          return {
+            x: scenarios,
+            y: means,
+            name: t,
+            type: 'bar',
+            marker: { color: TOOL_COLORS[t], opacity: 0.85 },
+          };
+        });
+
+        Plotly.react('chart-scenario', traces,
+          makeLayout({
+            height: 280,
+            barmode: 'group',
+            xaxis: { title: 'Scenario' },
+            yaxis: { title: 'Mean Accuracy', range: [0, 1.05], zeroline: false },
+          }),
+          CHART_CONFIG
+        );
+      }
+
+      // ── Chart 6: Scatter confidence vs accuracy ─────────────────────
+      {
+        const traces = ['KG','LLM','DOC'].map(t => {
+          const rows = data.filter(r => r.tool_assigned === t && r.accuracy != null && r.confidence_score != null);
+          // Spearman r from statsData
+          const sp = this.statsData?.correlation_confidence_accuracy?.[t];
+          const name = sp ? `${t}  r=${sp.r}` : t;
+          return {
+            x: rows.map(r => +r.confidence_score),
+            y: rows.map(r => +r.accuracy),
+            text: rows.map(r => r.participant_id),
+            name,
+            mode: 'markers',
+            type: 'scatter',
+            marker: { color: TOOL_COLORS[t], size: 7, opacity: 0.8 },
+          };
+        });
+
+        Plotly.react('chart-scatter', traces,
+          makeLayout({
+            height: 280,
+            xaxis: { title: 'Self-Reported Confidence (1–7)', dtick: 1 },
+            yaxis: { title: 'Accuracy Score', range: [-0.05, 1.05], zeroline: false },
+          }),
+          CHART_CONFIG
+        );
+      }
+
+      // ── Chart 7: Preference ranking ─────────────────────────────────
+      {
+        const sessions = {};
+        for (const row of data) {
+          if (!sessions[row.session_id] && row.rank_1) {
+            sessions[row.session_id] = { rank_1: row.rank_1, rank_2: row.rank_2, rank_3: row.rank_3 };
+          }
+        }
+        const counts = {
+          KG:  [0, 0, 0],
+          LLM: [0, 0, 0],
+          DOC: [0, 0, 0],
+        };
+        const total = Object.keys(sessions).length || 1;
+        for (const s of Object.values(sessions)) {
+          const ranks = [s.rank_1, s.rank_2, s.rank_3];
+          ranks.forEach((tool, idx) => {
+            if (counts[tool?.toUpperCase()]) counts[tool.toUpperCase()][idx]++;
+          });
+        }
+
+        const labels = ['1st', '2nd', '3rd'];
+        const fills  = ['#6366f1', '#818cf8', '#c7d2fe22'];
+        const traces = labels.map((lbl, idx) => ({
+          x: ['KG','LLM','DOC'],
+          y: ['KG','LLM','DOC'].map(t => counts[t][idx] / total * 100),
+          name: lbl,
+          type: 'bar',
+          marker: { color: fills[idx], opacity: 0.9 },
+        }));
+
+        Plotly.react('chart-pref', traces,
+          makeLayout({
+            height: 280,
+            barmode: 'stack',
+            xaxis: { title: 'Support Tool' },
+            yaxis: { title: 'Share (%)', range: [0, 105], zeroline: false },
+          }),
+          CHART_CONFIG
+        );
+      }
+
+      // ── Chart 8: Timeout rate ───────────────────────────────────────
+      {
+        const counts = { KG: 0, LLM: 0, DOC: 0 };
+        const totals = { KG: 0, LLM: 0, DOC: 0 };
+        for (const row of data) {
+          const t = row.tool_assigned;
+          if (counts[t] === undefined) continue;
+          totals[t]++;
+          if (row.timed_out) counts[t]++;
+        }
+
+        Plotly.react('chart-timeout',
+          [{
+            x: ['KG','LLM','DOC'],
+            y: ['KG','LLM','DOC'].map(t => totals[t] ? counts[t] / totals[t] * 100 : 0),
+            type: 'bar',
+            marker: { color: [KG_COLOR, LLM_COLOR, DOC_COLOR], opacity: 0.85 },
+            text: ['KG','LLM','DOC'].map(t => totals[t] ? (counts[t] / totals[t] * 100).toFixed(1) + '%' : '0%'),
+            textposition: 'outside',
+            textfont: { color: TEXT, size: 11 },
+          }],
+          makeLayout({
+            height: 280,
+            xaxis: { title: 'Support Tool' },
+            yaxis: { title: 'Timeout Rate (%)', range: [0, 105], zeroline: false },
+          }),
+          CHART_CONFIG
+        );
+      }
+    },
+
+    async runScore(force = false) {
+      this.scoring = true;
+      try {
+        const url = force ? '/api/score?force=true' : '/api/score';
+        const res = await fetch(url, { method: 'POST' });
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.detail || JSON.stringify(body));
+        this.showToast(
+          `Scored: ${body.scored} · Skipped: ${body.skipped_already_scored} · Empty: ${body.skipped_empty}` +
+          (body.errors?.length ? ` · Errors: ${body.errors.length}` : ''),
+          'success'
+        );
+        await this.refresh();
+      } catch (e) {
+        this.showToast('Scoring error: ' + e.message, 'error');
+      } finally {
+        this.scoring = false;
+      }
+    },
+
+    async patchAccuracy(row, val) {
+      const v = parseFloat(val);
+      if (isNaN(v) || v < 0 || v > 1) {
+        this.showToast('Accuracy must be between 0 and 1', 'error');
+        return;
+      }
+      try {
+        const res = await fetch(`/api/score/${row.task_id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accuracy: v, rater_notes: 'Manually corrected by researcher' }),
+        });
+        if (!res.ok) throw new Error((await res.json()).detail);
+        row.accuracy = v;
+        this.computeKPI();
+        this.renderCharts();
+        // Re-fetch stats
+        const statsRes = await fetch('/api/stats');
+        this.statsData = await statsRes.json();
+        this.showToast(`task_id=${row.task_id} accuracy → ${v}`, 'success');
+      } catch (e) {
+        this.showToast('Patch error: ' + e.message, 'error');
+      }
+    },
+
+    get hasStats() {
+      return this.statsData && Object.keys(this.statsData).length > 0 && !this.statsData.error;
+    },
+
+    async generateNarrative() {
+      this.generatingNarrative = true;
+      this.narrativeError = '';
+      this.narrativeText = '';
+      try {
+        const res = await fetch('/api/narrative', { method: 'POST' });
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.detail || JSON.stringify(body));
+        this.narrativeText = body.narrative;
+        await this.$nextTick();
+        // auto-resize fallback for browsers that don't support field-sizing
+        const ta = this.$refs.narrativeArea;
+        if (ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+      } catch (e) {
+        this.narrativeError = 'Error: ' + e.message;
+      } finally {
+        this.generatingNarrative = false;
+      }
+    },
+
+    async copyNarrative() {
+      try {
+        await navigator.clipboard.writeText(this.narrativeText);
+        this.showToast('Copied to clipboard', 'success');
+      } catch {
+        this.showToast('Copy failed — select the text manually', 'error');
+      }
+    },
+
+    showToast(msg, type = 'success') {
+      this.toast = { msg, type, visible: true };
+      setTimeout(() => { this.toast.visible = false; }, 4500);
+    },
+
+    sampleData() {
+      return [
+        {
+          session_id: 901, participant_id: 'SIM-01', group_id: 'A', task_id: 9001,
+          scenario_id: 'P1', tool_assigned: 'KG', time_spent_seconds: 162, timed_out: 0,
+          diagnosis_text: 'Preview diagnosis', corrective_action_text: 'Preview action',
+          confidence_score: 5, trust_t1: 5, trust_t2: 6, trust_t3: 5,
+          accuracy: 0.84, rank_1: 'KG', rank_2: 'LLM', rank_3: 'DOC', score_notes: 'Preview data',
+        },
+        {
+          session_id: 901, participant_id: 'SIM-01', group_id: 'A', task_id: 9002,
+          scenario_id: 'P2', tool_assigned: 'LLM', time_spent_seconds: 146, timed_out: 0,
+          diagnosis_text: 'Preview diagnosis', corrective_action_text: 'Preview action',
+          confidence_score: 6, trust_t1: 6, trust_t2: 6, trust_t3: 5,
+          accuracy: 0.9, rank_1: 'KG', rank_2: 'LLM', rank_3: 'DOC', score_notes: 'Preview data',
+        },
+        {
+          session_id: 901, participant_id: 'SIM-01', group_id: 'A', task_id: 9003,
+          scenario_id: 'P3', tool_assigned: 'DOC', time_spent_seconds: 215, timed_out: 0,
+          diagnosis_text: 'Preview diagnosis', corrective_action_text: 'Preview action',
+          confidence_score: 4, trust_t1: 4, trust_t2: 4, trust_t3: 5,
+          accuracy: 0.58, rank_1: 'KG', rank_2: 'LLM', rank_3: 'DOC', score_notes: 'Preview data',
+        },
+        {
+          session_id: 902, participant_id: 'SIM-02', group_id: 'B', task_id: 9004,
+          scenario_id: 'P2', tool_assigned: 'KG', time_spent_seconds: 177, timed_out: 0,
+          diagnosis_text: 'Preview diagnosis', corrective_action_text: 'Preview action',
+          confidence_score: 4, trust_t1: 4, trust_t2: 5, trust_t3: 4,
+          accuracy: 0.73, rank_1: 'LLM', rank_2: 'KG', rank_3: 'DOC', score_notes: 'Preview data',
+        },
+        {
+          session_id: 902, participant_id: 'SIM-02', group_id: 'B', task_id: 9005,
+          scenario_id: 'P3', tool_assigned: 'LLM', time_spent_seconds: 138, timed_out: 0,
+          diagnosis_text: 'Preview diagnosis', corrective_action_text: 'Preview action',
+          confidence_score: 6, trust_t1: 6, trust_t2: 7, trust_t3: 6,
+          accuracy: 0.92, rank_1: 'LLM', rank_2: 'KG', rank_3: 'DOC', score_notes: 'Preview data',
+        },
+        {
+          session_id: 902, participant_id: 'SIM-02', group_id: 'B', task_id: 9006,
+          scenario_id: 'P1', tool_assigned: 'DOC', time_spent_seconds: 300, timed_out: 1,
+          diagnosis_text: 'Preview diagnosis', corrective_action_text: 'Preview action',
+          confidence_score: 3, trust_t1: 3, trust_t2: 4, trust_t3: 3,
+          accuracy: 0.44, rank_1: 'LLM', rank_2: 'KG', rank_3: 'DOC', score_notes: 'Preview data',
+        },
+        {
+          session_id: 903, participant_id: 'SIM-03', group_id: 'C', task_id: 9007,
+          scenario_id: 'P3', tool_assigned: 'KG', time_spent_seconds: 188, timed_out: 0,
+          diagnosis_text: 'Preview diagnosis', corrective_action_text: 'Preview action',
+          confidence_score: 5, trust_t1: 5, trust_t2: 5, trust_t3: 4,
+          accuracy: 0.79, rank_1: 'KG', rank_2: 'DOC', rank_3: 'LLM', score_notes: 'Preview data',
+        },
+        {
+          session_id: 903, participant_id: 'SIM-03', group_id: 'C', task_id: 9008,
+          scenario_id: 'P1', tool_assigned: 'LLM', time_spent_seconds: 152, timed_out: 0,
+          diagnosis_text: 'Preview diagnosis', corrective_action_text: 'Preview action',
+          confidence_score: 6, trust_t1: 6, trust_t2: 5, trust_t3: 6,
+          accuracy: 0.88, rank_1: 'KG', rank_2: 'DOC', rank_3: 'LLM', score_notes: 'Preview data',
+        },
+        {
+          session_id: 903, participant_id: 'SIM-03', group_id: 'C', task_id: 9009,
+          scenario_id: 'P2', tool_assigned: 'DOC', time_spent_seconds: 244, timed_out: 0,
+          diagnosis_text: 'Preview diagnosis', corrective_action_text: 'Preview action',
+          confidence_score: 4, trust_t1: 4, trust_t2: 4, trust_t3: 4,
+          accuracy: 0.61, rank_1: 'KG', rank_2: 'DOC', rank_3: 'LLM', score_notes: 'Preview data',
+        },
+      ];
+    },
+
+    sampleStats() {
+      return {
+        accuracy: {
+          friedman: { chi2: 6.0, df: 2, p: 0.0498, kendall_w: 1.0 },
+          posthoc: [
+            { pair: 'KG–LLM', statistic: 1, p_raw: 0.25, p_adj: 0.75, effect_size_r: 0.3333, significant: false },
+            { pair: 'KG–DOC', statistic: 0, p_raw: 0.125, p_adj: 0.375, effect_size_r: 1.0, significant: false },
+            { pair: 'LLM–DOC', statistic: 0, p_raw: 0.125, p_adj: 0.375, effect_size_r: 1.0, significant: false },
+          ],
+        },
+        time: {
+          shapiro: {
+            KG: { W: 0.9801, p: 0.7342, normal: true },
+            LLM: { W: 0.9682, p: 0.6521, normal: true },
+            DOC: { W: 0.9135, p: 0.4112, normal: true },
+          },
+          rm_anova: { F: 12.4481, df: 2, df_err: 4, p: 0.0178, p_GG: 0.0221, eta_sq_partial: 0.8612, sphericity_corrected: true },
+          friedman: null,
+          posthoc: [
+            { pair: 'KG–LLM', t: 3.1, p_raw: 0.041, p_adj: 0.123, significant: false },
+            { pair: 'KG–DOC', t: -2.8, p_raw: 0.049, p_adj: 0.147, significant: false },
+            { pair: 'LLM–DOC', t: -4.0, p_raw: 0.028, p_adj: 0.084, significant: false },
+          ],
+        },
+        trust: {
+          friedman: { chi2: 5.1667, df: 2, p: 0.0755, kendall_w: 0.8611 },
+        },
+        calibration: {
+          descriptive: {
+            KG: { mean: -0.0271 },
+            LLM: { mean: -0.0429 },
+            DOC: { mean: 0.0486 },
+          },
+          one_sample_wilcoxon: {
+            KG: { statistic: 2, p: 0.75, significant: false },
+            LLM: { statistic: 1, p: 0.5, significant: false },
+            DOC: { statistic: 1, p: 0.5, significant: false },
+          },
+        },
+        preference: {
+          friedman: { chi2: 4.6667, df: 2, p: 0.0969, kendall_w: 0.7778 },
+          first_choice_counts: { KG: 2, LLM: 1, DOC: 0 },
+          borda_means: { KG: 2.6667, LLM: 2.3333, DOC: 1.0 },
+        },
+        correlation_confidence_accuracy: {
+          KG: { r: 1.0, p: 0.0, n: 3 },
+          LLM: { r: 0.5, p: 0.6667, n: 3 },
+          DOC: { r: 0.5, p: 0.6667, n: 3 },
+        },
+        cronbach_alpha: { KG: 0.84, LLM: 0.89, DOC: 0.81 },
+      };
+    },
+
+    truncate(str, len = 80) {
+      if (!str) return '—';
+      return str.length > len ? str.slice(0, len) + '…' : str;
+    },
+
+    trustScore(row) {
+      const vals = [row.trust_t1, row.trust_t2, row.trust_t3].filter(v => v != null);
+      if (!vals.length) return '—';
+      return (vals.reduce((a,b) => a+b) / vals.length).toFixed(2);
+    },
+  };
+}
+</script>
+</body>
+</html>

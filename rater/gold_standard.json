@@ -1,0 +1,114 @@
+{
+  "P1": {
+    "scenario_description": "Extrusion/Hotend — dual-cause scenario",
+    "scoring_type": "multi_step",
+    "elements": [
+      {
+        "id": "P1_diag_A",
+        "description": "Identifies filament dust accumulation inside extruder / on yellow gear as a root cause",
+        "weight": 0.25,
+        "keywords_hint": ["extruder", "dust", "gear", "filament dust", "debris"]
+      },
+      {
+        "id": "P1_diag_B",
+        "description": "Identifies nozzle residue / burned plastic buildup as a root cause",
+        "weight": 0.25,
+        "keywords_hint": ["nozzle", "residue", "clog", "buildup", "burned", "heater block"]
+      },
+      {
+        "id": "P1_act_A",
+        "description": "Prescribes compressed air cleaning of extruder gear",
+        "weight": 0.20,
+        "keywords_hint": ["compressed air", "blow", "gear", "extruder cleaning"]
+      },
+      {
+        "id": "P1_act_B",
+        "description": "Prescribes hot nozzle cleaning (heat to ~200C and wipe)",
+        "weight": 0.15,
+        "keywords_hint": ["heat", "200", "wipe", "tweezers", "hot cleaning"]
+      },
+      {
+        "id": "P1_act_C",
+        "description": "Prescribes cold pull to clear internal nozzle residue",
+        "weight": 0.15,
+        "keywords_hint": ["cold pull", "pull", "filament pull", "unclog"]
+      }
+    ],
+    "fatal_errors": [
+      "Recommends applying grease or oil to the extruder gear"
+    ]
+  },
+  "P2": {
+    "scenario_description": "Motion System — X axis grease contamination",
+    "scoring_type": "multi_step",
+    "elements": [
+      {
+        "id": "P2_diag",
+        "description": "Identifies grease or lubricant contamination on X-axis carbon rods as root cause",
+        "weight": 0.40,
+        "keywords_hint": ["grease", "lubricant", "oil", "carbon rod", "contamination", "X-axis"]
+      },
+      {
+        "id": "P2_act_A",
+        "description": "Prescribes IPA (isopropyl alcohol) cleaning of carbon rods with lint-free cloth",
+        "weight": 0.40,
+        "keywords_hint": ["isopropyl", "IPA", "alcohol", "lint-free", "cloth", "clean", "wipe"]
+      },
+      {
+        "id": "P2_act_B",
+        "description": "Explicitly states that no grease or lubricant should be applied to carbon rods",
+        "weight": 0.10,
+        "keywords_hint": ["do not", "no grease", "no oil", "avoid lubricant", "dry"]
+      },
+      {
+        "id": "P2_act_C",
+        "description": "Prescribes re-running vibration calibration after cleaning",
+        "weight": 0.10,
+        "keywords_hint": ["calibration", "recalibrate", "rerun", "vibration compensation"]
+      }
+    ],
+    "fatal_errors": [
+      "Recommends applying lubricant, grease, or oil to the carbon rods as a corrective action"
+    ]
+  },
+  "P3": {
+    "scenario_description": "AMS Filament Cutter — blade dulled by regular filaments",
+    "scoring_type": "multi_step",
+    "elements": [
+      {
+        "id": "P3_diag_A",
+        "description": "Identifies the filament cutter blade as the faulty component",
+        "weight": 0.20,
+        "keywords_hint": ["cutter", "blade", "filament cutter", "AMS cutter"]
+      },
+      {
+        "id": "P3_diag_B",
+        "description": "Correctly identifies regular-filament (non-abrasive) wear variant, not abrasive",
+        "weight": 0.20,
+        "keywords_hint": ["regular", "PLA", "non-abrasive", "standard filament", "normal use"]
+      },
+      {
+        "id": "P3_act_A",
+        "description": "Prescribes inspection of cut filament tips to confirm dullness",
+        "weight": 0.20,
+        "keywords_hint": ["inspect", "check tip", "frayed", "cut end", "verify"]
+      },
+      {
+        "id": "P3_act_B",
+        "description": "Prescribes blade replacement (not sharpening or workaround)",
+        "weight": 0.30,
+        "keywords_hint": ["replace", "new blade", "swap blade", "install blade"]
+      },
+      {
+        "id": "P3_act_C",
+        "description": "Prescribes verification via test unload/load after replacement",
+        "weight": 0.10,
+        "keywords_hint": ["test", "verify", "unload", "load", "confirm"]
+      }
+    ],
+    "fatal_errors": [
+      "Recommends sharpening the blade instead of replacing it",
+      "Selects abrasive-filament variant as the failure mode"
+    ]
+  }
+}

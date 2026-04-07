@@ -1,0 +1,332 @@
+{
+  "study_title": {
+    "en": "P1P Troubleshooting Study",
+    "it": "Studio di Troubleshooting P1P"
+  },
+  "task_duration_seconds": 300,
+  "likert_labels": {
+    "confidence": {
+      "en": {
+        "low": "Not confident at all",
+        "high": "Very confident"
+      },
+      "it": {
+        "low": "Per nulla sicuro",
+        "high": "Molto sicuro"
+      }
+    },
+    "manufacturing": {
+      "en": {
+        "low": "None",
+        "high": "Expert"
+      },
+      "it": {
+        "low": "Nessuna",
+        "high": "Esperto"
+      }
+    }
+  },
+  "instructions": {
+    "overview": {
+      "en": [
+        "You will complete three troubleshooting tasks involving a Bambu Lab P1P printer.",
+        "Each task lasts five minutes. Work independently using only the support tool assigned for that task.",
+        "Record your diagnosis, proposed corrective action, your confidence, and how much you trusted the assigned tool."
+      ],
+      "it": [
+        "Completerai tre attività di troubleshooting relative a una stampante Bambu Lab P1P.",
+        "Ogni attività dura cinque minuti. Lavora in autonomia usando solo lo strumento di supporto assegnato per quella attività.",
+        "Registra la tua diagnosi, l'azione correttiva proposta, il tuo livello di confidenza e il livello di fiducia nello strumento assegnato."
+      ]
+    },
+    "rules": {
+      "en": [
+        "Proceed in order and do not revisit previous screens.",
+        "When the timer reaches zero, the task ends automatically.",
+        "Stay on the page during each task and notify the experimenter if you need assistance."
+      ],
+      "it": [
+        "Procedi in ordine e non tornare alle schermate precedenti.",
+        "Quando il timer raggiunge lo zero, l'attività termina automaticamente.",
+        "Rimani sulla pagina durante ogni attività e avvisa lo sperimentatore se hai bisogno di assistenza."
+      ]
+    },
+    "tools": {
+      "KG": {
+        "usage_steps": {
+          "en": [
+            "Read the scenario carefully before opening the KG chatbot.",
+            "Ask focused questions that link the visible symptoms and error code to likely causes.",
+            "Use the KG replies to narrow the checks to perform, then write your own final answer in this app."
+          ],
+          "it": [
+            "Leggi con attenzione lo scenario prima di aprire il chatbot KG.",
+            "Fai domande mirate che colleghino sintomi osservati e codice errore alle cause più probabili.",
+            "Usa le risposte del KG per restringere le verifiche utili, poi scrivi qui la tua risposta finale."
+          ]
+        },
+        "you_may": {
+          "en": [
+            "Ask which checks best distinguish between two similar fault hypotheses.",
+            "Request targeted troubleshooting steps for the specific printer subsystem in the scenario."
+          ],
+          "it": [
+            "Chiedere quali verifiche distinguono meglio tra due ipotesi di guasto simili.",
+            "Richiedere passaggi di troubleshooting mirati per il sottosistema della stampante coinvolto."
+          ]
+        },
+        "you_may_not": {
+          "en": [
+            "Paste the chatbot wording as your final answer without rewriting it in your own terms.",
+            "Keep asking broad generic questions once the scenario already points to a specific subsystem."
+          ],
+          "it": [
+            "Copiare il testo del chatbot come risposta finale senza riformularlo con parole tue.",
+            "Continuare con domande generiche molto ampie quando lo scenario indica già un sottosistema specifico."
+          ]
+        }
+      },
+      "LLM": {
+        "usage_steps": {
+          "en": [
+            "Open the assigned ChatGPT tab and describe the printer issue precisely.",
+            "Ask the model to justify the most likely fault using the symptoms, logs, and error code provided.",
+            "Use follow-up questions to test the top hypothesis, then summarise the final diagnosis and action in this app."
+          ],
+          "it": [
+            "Apri la scheda ChatGPT assegnata e descrivi con precisione il problema della stampante.",
+            "Chiedi al modello di giustificare il guasto più probabile usando sintomi, log e codice errore forniti.",
+            "Usa domande successive per verificare l'ipotesi principale, poi riassumi qui diagnosi finale e azione correttiva."
+          ]
+        },
+        "you_may": {
+          "en": [
+            "Ask for a short comparison between the two most likely causes.",
+            "Request a concise ordered checklist of checks or corrective actions."
+          ],
+          "it": [
+            "Chiedere un confronto breve tra le due cause più probabili.",
+            "Richiedere una checklist sintetica e ordinata di verifiche o azioni correttive."
+          ]
+        },
+        "you_may_not": {
+          "en": [
+            "Ask the model to write the exact final answer for you to paste unchanged in the form.",
+            "Keep the prompt vague if the scenario already provides concrete evidence such as an error code or physical symptom."
+          ],
+          "it": [
+            "Chiedere al modello di scrivere la risposta finale esatta da incollare senza modifiche nel form.",
+            "Lasciare il prompt vago quando lo scenario fornisce già evidenze concrete come codice errore o sintomi fisici."
+          ]
+        }
+      },
+      "DOC": {
+        "usage_steps": {
+          "en": [
+            "Use the Bambu documentation or wiki assigned for the session.",
+            "Use the visible symptoms and error code to reach the most relevant troubleshooting or maintenance page.",
+            "Check that the documented cause matches the scenario evidence, then write your final diagnosis and action in this app."
+          ],
+          "it": [
+            "Usa la documentazione o wiki Bambu assegnata per la sessione.",
+            "Usa sintomi visibili e codice errore per raggiungere la pagina di troubleshooting o manutenzione più pertinente.",
+            "Verifica che la causa documentata combaci con le evidenze dello scenario, poi scrivi qui diagnosi finale e azione correttiva."
+          ]
+        },
+        "you_may": {
+          "en": [
+            "Follow links to closely related maintenance steps when they help confirm the diagnosis.",
+            "Use error-code pages, symptom keywords, and subsystem names to narrow the search."
+          ],
+          "it": [
+            "Seguire link a procedure di manutenzione strettamente collegate se aiutano a confermare la diagnosi.",
+            "Usare pagine del codice errore, parole chiave dei sintomi e nomi dei sottosistemi per restringere la ricerca."
+          ]
+        },
+        "you_may_not": {
+          "en": [
+            "Stop at the first keyword match without checking whether the documented symptoms really align with the scenario.",
+            "Spend time browsing unrelated overview pages once you already have a relevant troubleshooting page open."
+          ],
+          "it": [
+            "Fermarti al primo match per parola chiave senza verificare che i sintomi documentati coincidano davvero con lo scenario.",
+            "Perdere tempo su pagine generali non pertinenti quando hai già aperto una pagina di troubleshooting rilevante."
+          ]
+        }
+      }
+    }
+  },
+  "latin_square": {
+    "G1": [
+      { "scenario": "P1", "tool": "KG" },
+      { "scenario": "P2", "tool": "LLM" },
+      { "scenario": "P3", "tool": "DOC" }
+    ],
+    "G2": [
+      { "scenario": "P1", "tool": "LLM" },
+      { "scenario": "P2", "tool": "DOC" },
+      { "scenario": "P3", "tool": "KG" }
+    ],
+    "G3": [
+      { "scenario": "P1", "tool": "DOC" },
+      { "scenario": "P2", "tool": "KG" },
+      { "scenario": "P3", "tool": "LLM" }
+    ],
+    "G4": [
+      { "scenario": "P2", "tool": "KG" },
+      { "scenario": "P3", "tool": "LLM" },
+      { "scenario": "P1", "tool": "DOC" }
+    ],
+    "G5": [
+      { "scenario": "P2", "tool": "LLM" },
+      { "scenario": "P3", "tool": "DOC" },
+      { "scenario": "P1", "tool": "KG" }
+    ],
+    "G6": [
+      { "scenario": "P2", "tool": "DOC" },
+      { "scenario": "P3", "tool": "KG" },
+      { "scenario": "P1", "tool": "LLM" }
+    ]
+  },
+  "scenarios": {
+    "P1": {
+      "difficulty": 1,
+      "subsystem": {
+        "en": "Extrusion / Hotend",
+        "it": "Estrusione / Hotend"
+      },
+      "machine_state": {
+        "en": "The printer was actively printing a single-material object at 30% completion. The toolhead was moving regularly, but material deposition had been increasingly sparse for approximately 10 minutes.",
+        "it": "La stampante stava realizzando attivamente un oggetto monomateriale al 30% di completamento. Il toolhead si muoveva regolarmente, ma la deposizione del materiale era diventata progressivamente scarsa da circa 10 minuti."
+      },
+      "process_parameters": {
+        "en": "Material: PLA standard — Nozzle temperature: 220 °C — Print speed: 200 mm/s — Filament feed rate: 18 mm/s — Extrusion pressure: progressively increasing (logged by firmware)",
+        "it": "Materiale: PLA standard — Temperatura ugello: 220 °C — Velocità di stampa: 200 mm/s — Velocità di avanzamento filamento: 18 mm/s — Pressione di estrusione: in progressivo aumento (registrata dal firmware)"
+      },
+      "observable_symptoms": [
+        {
+          "en": "Object walls show thin, incomplete lines with visible gaps and missing sections in the infill — material is not being deposited uniformly across layers.",
+          "it": "Le pareti dell'oggetto mostrano linee sottili e incomplete con vuoti visibili e sezioni mancanti nell'infill: il materiale non viene depositato in modo uniforme tra i layer."
+        },
+        {
+          "en": "Fine beige-coloured plastic dust and shavings are clearly visible on and around the yellow extruder drive gear, visible through the front cover.",
+          "it": "Sulla ruota di trascinamento gialla dell'estrusore, visibile attraverso il coperchio frontale, sono chiaramente presenti polvere e trucioli di plastica color beige."
+        },
+        {
+          "en": "The nozzle outer surface and heater block show dark burned-plastic deposits and solidified blobs adhered to the metal.",
+          "it": "La superficie esterna dell'ugello e l'heater block mostrano depositi scuri di plastica bruciata e grumi solidificati aderenti al metallo."
+        }
+      ],
+      "error_code": "0300-0900-0002-0001",
+      "error_message": {
+        "en": "Extruder motor overloaded; the extruder may be clogged or the filament may be stuck in the tool head.",
+        "it": "Motore dell'estrusore sovraccarico; l'estrusore potrebbe essere ostruito oppure il filamento potrebbe essere bloccato nel toolhead."
+      }
+    },
+    "P2": {
+      "difficulty": 2,
+      "subsystem": {
+        "en": "Motion System — X axis",
+        "it": "Sistema di movimento — asse X"
+      },
+      "machine_state": {
+        "en": "The printer was running an automatic motion-system calibration (vibration compensation) before a high-speed print job. The procedure stopped with an error during the X-axis scanning phase.",
+        "it": "La stampante stava eseguendo una calibrazione automatica del sistema di movimento (compensazione delle vibrazioni) prima di una stampa ad alta velocità. La procedura si è interrotta con un errore durante la fase di scansione dell'asse X."
+      },
+      "process_parameters": {
+        "en": "Toolhead test speed: 300 mm/s (high-speed profile) — X-axis resonance frequency: detected as anomalous vs. last saved calibration — X-axis motor current: above baseline",
+        "it": "Velocità di test del toolhead: 300 mm/s (profilo high-speed) — Frequenza di risonanza asse X: rilevata come anomala rispetto all'ultima calibrazione salvata — Corrente motore asse X: sopra il baseline"
+      },
+      "observable_symptoms": [
+        {
+          "en": "Moving the toolhead manually along the X-axis with the printer off, one feels irregular resistance and occasional sticking rather than a smooth, continuous glide.",
+          "it": "Muovendo manualmente il toolhead lungo l'asse X con la stampante spenta, si percepisce una resistenza irregolare e occasionali impuntamenti invece di uno scorrimento fluido e continuo."
+        },
+        {
+          "en": "The X-axis carbon rods appear visibly dirty; wiping with a dry cloth leaves a dark greasy streak and the rods remain streaky rather than clean.",
+          "it": "Le barre in carbonio dell'asse X appaiono visibilmente sporche; passando un panno asciutto rimane una striscia scura e grassa e le barre restano striate invece che pulite."
+        },
+        {
+          "en": "During rapid XY movement tests, a sharp, repeating squeak is clearly audible, synchronised with each toolhead oscillation.",
+          "it": "Durante i test di movimento rapido XY si sente chiaramente uno stridio acuto e ripetuto, sincronizzato con ogni oscillazione del toolhead."
+        }
+      ],
+      "error_code": "0300-1000-0002-0002",
+      "error_message": {
+        "en": "The resonance frequency of the X axis differs greatly from last calibration; please clean the carbon rod and rerun calibration.",
+        "it": "La frequenza di risonanza dell'asse X differisce notevolmente dall'ultima calibrazione; pulire la barra in carbonio e rieseguire la calibrazione."
+      }
+    },
+    "P3": {
+      "difficulty": 3,
+      "subsystem": {
+        "en": "Filament Handling — AMS Cutter",
+        "it": "Gestione del filamento — lama AMS"
+      },
+      "machine_state": {
+        "en": "The printer was at 60% of a multi-colour print with the AMS active. During a filament change (from white PLA to red PLA), the cut-and-load sequence stalled, interrupting the print.",
+        "it": "La stampante era al 60% di una stampa multicolore con AMS attivo. Durante un cambio filamento (da PLA bianco a PLA rosso), la sequenza di taglio e caricamento si è bloccata, interrompendo la stampa."
+      },
+      "process_parameters": {
+        "en": "Material: standard PLA (non-abrasive) — Estimated cumulative cutter cycles: >200 — Filament feed rate during load sequence: 20 mm/s — Approximately 4 full rolls processed since last blade inspection",
+        "it": "Materiale: PLA standard (non abrasivo) — Cicli cumulativi stimati della lama: >200 — Velocità di avanzamento del filamento durante il caricamento: 20 mm/s — Circa 4 bobine complete lavorate dall'ultima ispezione della lama"
+      },
+      "observable_symptoms": [
+        {
+          "en": "The filament tip ejected by the AMS after unloading appears visibly oblique, frayed, and irregular rather than a clean perpendicular cut.",
+          "it": "La punta del filamento espulsa dall'AMS dopo lo scarico appare visibilmente obliqua, sfrangiata e irregolare invece che tagliata in modo netto e perpendicolare."
+        },
+        {
+          "en": "The next filament fails to load: the system retries the loading sequence multiple times without completing it, and the irregular tip is visibly unable to enter the PTFE tube smoothly.",
+          "it": "Il filamento successivo non riesce a caricarsi: il sistema ripete più volte la sequenza di caricamento senza completarla e la punta irregolare non riesce visibilmente a entrare in modo fluido nel tubo PTFE."
+        },
+        {
+          "en": "On close inspection of the cutter blade, the cutting edge appears rounded and dull compared to a new blade, with small nicks visible along the edge.",
+          "it": "Osservando da vicino la lama del cutter, il filo appare arrotondato e smussato rispetto a una lama nuova, con piccole scheggiature visibili lungo il bordo."
+        }
+      ],
+      "error_code": "0700-4500-0002-0003",
+      "error_message": {
+        "en": "The filament cutter handle has not been released; the handle or blade may be jammed, or there could be an issue with the filament sensor connection.",
+        "it": "La leva del tagliafilamento non è stata rilasciata; la leva o la lama potrebbero essere bloccate, oppure potrebbe esserci un problema con il collegamento del sensore del filamento."
+      }
+    }
+  },
+  "tools": {
+    "KG": {
+      "label": {
+        "en": "KG — Knowledge Graph Chatbot",
+        "it": "KG — Chatbot basato su Knowledge Graph"
+      },
+      "color": "blue"
+    },
+    "LLM": {
+      "label": {
+        "en": "LLM — ChatGPT (GPT-3.5)",
+        "it": "LLM — ChatGPT (GPT-3.5)"
+      },
+      "color": "green"
+    },
+    "DOC": {
+      "label": {
+        "en": "DOC — Open Documentation",
+        "it": "DOC — Documentazione aperta"
+      },
+      "color": "amber"
+    }
+  },
+  "trust_questions": [
+    {
+      "en": "I trust the answer provided by this tool.",
+      "it": "Mi fido della risposta fornita da questo strumento."
+    },
+    {
+      "en": "I am confident that the suggested solution is correct.",
+      "it": "Sono sicuro che la soluzione suggerita sia corretta."
+    },
+    {
+      "en": "I would rely on this tool for similar problems in the future.",
+      "it": "Mi affiderei a questo strumento per problemi simili in futuro."
+    }
+  ]
+}
